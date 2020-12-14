@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <title>Projeto IoT</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <h1>Projeto IoT - API MQTT</h1>
+    <h2>Introdução</h2>
+    <p>
+      O projeto é uma solução para a falta de conhecimento do consumo energético de equipamentos específicos dentro do
+      setor doméstico. Será capturado os níveis de tensão, corrente e potência consumidos de um equipamento através de
+      um sensor que será embutido na tomada de alimentação do mesmo. As informações coletadas serão enviadas através de
+      um microcontrolador com capacidade de comunicação MQTT em uma rede sem fio para a internet. Os dados enviados pela
+      internet serão recebidos por um servidor remoto, o qual armazena esses dados em um banco. O servidor remoto também
+      é responsável por transmitir os dados coletados através de uma interface REST para os clientes que quiserem
+      consumir esses dados. O servidor também fica responsável por armazenar regras de funcionamento configuradas pelos
+      clientes e enviar comandos ao atuador presente na tomada, com a possibilidade de, por exemplo, ligar e desligar a
+      tomada.
+    </p>
+
+    <h2>Desenvolvimento</h2>
+
+    <h3>Servidor</h3>
+    <p>
+      O servidor foi construído com três principais objetivos: ser o broker da comunicação MQTT, armazenamento das
+      leituras feitas pelos dispositivos e disponibilizar uma interface REST para o controle dos dispositivos e
+      requisição dos dados armazenados. A construção técnica do servidor foi feita baseada em
+      <a href="https://nodejs.org/">Node.js</a> utilizando o superconjunto de javascript
+      <a href="https://www.typescriptlang.org/">TypeScript</a>.
+    </p>
+
+    <h3>Broker</h3>
+    <p>
+      Para o desenvolvimento do broker foi utilizado a biblioteca de código aberto
+      <a href="https://github.com/moscajs/aedes">Aedes</a>, que tem como ponto forte a facilidade de implementação em
+      cima de qualquer servidor de stream. No protótipo construído foi utilizado o tópico “state” para o envio ao
+      dispositivo cliente seu estado de atuação. Os níveis de consumo emitidos pelo dispositivo cliente são enviados
+      através do tópico “current-value”. A comunicação é toda realizada através de QoS 0. A implementação pode ser
+      verificada <a href="https://github.com/zoruka/api-mqtt/tree/master/src/modules/mqtt">aqui</a>.
+    </p>
+
+    <h3>Banco de Dados</h3>
+    <p>
+      O banco de dados utilizado foi o <a href="https://www.npmjs.com/package/sqlite3">SQLite</a>. A seleção desse banco
+      foi dada pela sua facilidade em prototipação de pequenos projetos. Não há necessidade de um serviço à parte para
+      seu controle, portanto requer menos consumo computacional, além de ficar acoplado ao sistema. A implementação pode
+      ser verificada <a href="https://github.com/zoruka/api-mqtt/tree/master/src/modules/database">aqui</a>.
+    </p>
+
+    <h3>REST</h3>
+    <p>
+      A construção da interface REST foi feita utilizando a framework <a href="https://expressjs.com/">ExpressJS</a> que
+      fornece uma miríade de métodos utilitários HTTP e middleware, de forma que criar uma API robusta é rápido e fácil.
+      A API feita fornece duas requisições:
+    </p>
+    <li><b>GET</b> /voltage-read</li>
+    <li><b>GET</b> /voltage-read?count=X</li>
+    <p>
+        <code><b>Resposta:</b> </br> { lastReads: [ { "id": number, "value": number, "date": number } ] } </code>
+        <p>Com a quantidade padrão de leituras sendo 5 e podendo ser modificada para X nos parâmetros da requisição.</p>
+    </p>
+    <li><b>POST</b> /set-state</li>
+
+    <p><code><b>Corpo:</b> </br> { “state”: boolean } </code></p>
+    <p>Com "state" sendo o estado para qual se deseja mandar o dispositivo cliente.</p>
+    <code><b>Respostas:</b> </br> 200: Requisição executada com sucesso.</br> 400: Requisição com corpo mal feito.</code>
+    <p>
+        A implementação pode ser verificada <a href="https://github.com/zoruka/api-mqtt/tree/master/src/modules/rest">aqui</a>.
+    </p>
+
+    <h3>
+        Dispositivo Cliente
+    </h3>
+    <p>
+        O processo de sensoriamento, atuação e comunicação com o servidor é controlado por um Arduino Uno. O microcontrolador tem sua leitura sensorial proveniente de um sensor ZMPT101B. Para a atuação o microcontrolador utiliza um driver a relé que faz a ligação entre a rede elétrica e o equipamento que deverá ser alimentado. O envio dos dados para a internet é feito através de um shield HR911105A que fornece conexão Ethernet. Foi feita a implementação da lógica para um cliente MQTT no microcontrolador, de forma que atua enviando o valor da leitura recebida pelo sensor a cada segundo. Além disso, o estado de atuação do driver também é definido através das mensagens recebidas no tópico pré-definido. A implementação feita no Arduino pode ser verificada <a href="https://github.com/zoruka/api-mqtt/tree/master/arduino">aqui</a>.
+    </p>
+  </body>
+</html>

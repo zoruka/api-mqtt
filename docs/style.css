@@ -1,0 +1,37 @@
+:root {
+  --dark: #323232;
+  --light: #ffffff;
+  --default: #fe9600;
+  --default-dark: #be7b1c;
+}
+
+html {
+  background-color: var(--dark);
+  color: var(--light);
+  font-family: 'Open Sans', sans-serif;
+}
+
+body {
+  max-width: 800px;
+  margin: 30px auto;
+  text-align: justify;
+}
+
+a {
+  text-decoration: none;
+  color: var(--default);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  color: var(--default-dark);
+}
+
+h1,
+h2,
+h3 {
+  color: var(--default);
+}
